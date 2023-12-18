@@ -1,12 +1,6 @@
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon"
 import difference from "@turf/difference"
 import {
-	Feature,
-	FeatureCollection,
-	LineString,
-	MultiPolygon,
-	Polygon,
-	Properties,
 	featureCollection,
 	lineString,
 	multiPolygon,
@@ -19,6 +13,14 @@ import lineOffset from "@turf/line-offset"
 import lineOverlap from "@turf/line-overlap"
 import lineToPolygon from "@turf/line-to-polygon"
 import unkinkPolygon from "@turf/unkink-polygon"
+import {
+	Feature,
+	FeatureCollection,
+	GeoJsonProperties,
+	LineString,
+	MultiPolygon,
+	Polygon,
+} from "geojson"
 
 /**
  * Slices {@link Polygon} using a {@link Linestring}.
@@ -55,24 +57,21 @@ import unkinkPolygon from "@turf/unkink-polygon"
  * //=sliced
  */
 export default function polygonSlice(
-	poly: Feature<Polygon, Properties>,
-	splitter: Feature<LineString, Properties>,
+	poly: Feature<Polygon, GeoJsonProperties>,
+	splitter: Feature<LineString, GeoJsonProperties>,
 ): FeatureCollection<Polygon> {
-	const polyGeom = getGeom(poly)
-	const splitterGeom = getGeom(splitter)
-
-	const line = trimStartEndPoints(polyGeom, splitterGeom)
+	const line = trimStartEndPoints(poly, getGeom(splitter))
 	if (line == null) return featureCollection([poly])
 
 	const newPolygons = []
 
-	const upperCut = cutPolygon(polyGeom, line, 1, "upper")
-	const lowerCut = cutPolygon(polyGeom, line, -1, "lower")
+	const upperCut = cutPolygon(poly, line, 1, "upper")
+	const lowerCut = cutPolygon(poly, line, -1, "lower")
 	if (upperCut != null && lowerCut != null) {
 		newPolygons.push(upperCut.geometry)
 		newPolygons.push(lowerCut.geometry)
 	} else {
-		newPolygons.push(polyGeom)
+		newPolygons.push(poly.geometry)
 	}
 
 	const generatedPolygons: Polygon[] = []
@@ -93,7 +92,7 @@ export default function polygonSlice(
 }
 
 function cutPolygon(
-	poly: Polygon,
+	poly: Feature<Polygon, GeoJsonProperties>,
 	line: LineString,
 	direction: number,
 	id: string,
@@ -102,7 +101,8 @@ function cutPolygon(
 	const cutPolyGeoms = []
 	let retVal = null
 
-	if (poly.type != "Polygon" || line.type != "LineString") return retVal
+	if (poly.geometry.type != "Polygon" || line.type != "LineString")
+		return retVal
 
 	const intersectPoints = lineIntersect(poly, line)
 	const nPoints = intersectPoints.features.length
@@ -113,7 +113,7 @@ function cutPolygon(
 
 	let clipped: Feature<Polygon | MultiPolygon> | null
 	try {
-		clipped = difference(poly, thickLinePolygon)
+		clipped = difference(featureCollection([poly, thickLinePolygon]))
 	} catch (e) {
 		return retVal
 	}
@@ -156,7 +156,7 @@ function prepareDiffLinePolygon(line: LineString, direction: number) {
 		k,
 		offsetLine,
 		polyCoords = []
-	let thickLinePolygon: Feature<Polygon, Properties> | null = null
+	let thickLinePolygon: Feature<Polygon, GeoJsonProperties> | null = null
 
 	const offsetScales = [0.01, 0.001, 0.0001]
 
@@ -175,7 +175,7 @@ function prepareDiffLinePolygon(line: LineString, direction: number) {
 		const thickLineString = lineString(polyCoords)
 		thickLinePolygon = lineToPolygon(thickLineString) as Feature<
 			Polygon,
-			Properties
+			GeoJsonProperties
 		>
 
 		const result = unkinkPolygon(thickLinePolygon)
@@ -193,7 +193,10 @@ function prepareDiffLinePolygon(line: LineString, direction: number) {
  * Prepare linestrings from polygon-cut
  * avoid start and end points inside polygon for calculation
  */
-function trimStartEndPoints(poly: Polygon, line: LineString) {
+function trimStartEndPoints(
+	poly: Feature<Polygon, GeoJsonProperties>,
+	line: LineString,
+) {
 	let j
 	let startAt = 0
 	let endAt = line.coordinates.length
