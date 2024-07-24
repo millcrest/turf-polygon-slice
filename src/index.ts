@@ -28,7 +28,7 @@ import {
  * @name polygonSlice
  * @param {Feature<Polygon | MultiPolygon>} poly Polygon to slice
  * @param {Feature<LineString>} splitter LineString used to slice Polygon
- * @returns {FeatureCollection<Polygon>} Sliced Polygons
+ * @returns {FeatureCollection<Polygon | MultiPolygon>} Sliced Polygons
  * @example
  * var polygon = {
  *   "geometry": {
