@@ -1,6 +1,6 @@
 {
 	"name": "turf-polygon-slice",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Slices Polygon using a LineString",
 	"license": "ISC",
 	"main": "dist/index.cjs.js",
@@ -11,9 +11,9 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/Torrunt/turf-polygon-slice.git"
+		"url": "git://github.com/millcrest/turf-polygon-slice.git"
 	},
-	"homepage": "https://github.com/Torrunt/turf-polygon-slice",
+	"homepage": "https://github.com/millcrest/turf-polygon-slice",
 	"scripts": {
 		"dev": "tsc && vite build --watch",
 		"start": "vite --host --open",
