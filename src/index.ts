@@ -26,7 +26,7 @@ import {
  * Slices {@link Polygon} using a {@link Linestring}.
  *
  * @name polygonSlice
- * @param {Feature<Polygon>} poly Polygon to slice
+ * @param {Feature<Polygon | MultiPolygon>} poly Polygon to slice
  * @param {Feature<LineString>} splitter LineString used to slice Polygon
  * @returns {FeatureCollection<Polygon>} Sliced Polygons
  * @example
@@ -57,9 +57,9 @@ import {
  * //=sliced
  */
 export default function polygonSlice(
-	poly: Feature<Polygon, GeoJsonProperties>,
+	poly: Feature<Polygon | MultiPolygon, GeoJsonProperties>,
 	splitter: Feature<LineString, GeoJsonProperties>,
-): FeatureCollection<Polygon> {
+): FeatureCollection<Polygon | MultiPolygon> {
 	const line = trimStartEndPoints(poly, getGeom(splitter))
 	if (line == null) return featureCollection([poly])
 
@@ -92,7 +92,7 @@ export default function polygonSlice(
 }
 
 function cutPolygon(
-	poly: Feature<Polygon, GeoJsonProperties>,
+	poly: Feature<Polygon | MultiPolygon, GeoJsonProperties>,
 	line: LineString,
 	direction: number,
 	id: string,
@@ -194,7 +194,7 @@ function prepareDiffLinePolygon(line: LineString, direction: number) {
  * avoid start and end points inside polygon for calculation
  */
 function trimStartEndPoints(
-	poly: Feature<Polygon, GeoJsonProperties>,
+	poly: Feature<Polygon | MultiPolygon, GeoJsonProperties>,
 	line: LineString,
 ) {
 	let j
